@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import com.google.android.material.transition.Hold
 import edu.umdearborn.two_dicepig.databinding.ActivityTwoDicePigBinding
 import kotlin.random.Random
 
@@ -20,8 +19,6 @@ class TwoDicePigActivity : AppCompatActivity() {
     private var die = arrayOf<Int>(0, 0)
     private lateinit var dieImages : MutableList<ImageView>
     private var currentPlayer : Int = Random.nextInt(0, 2)
-    private var diceVisible : Boolean = false
-    private var endVisible : Boolean = false
 
     //for errors
     val TAG = "TWO-DICE-PIG"
@@ -31,9 +28,6 @@ class TwoDicePigActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityTwoDicePigBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        // make stuff invisible
-        ToggleVisibilityOfEnd(true)
 
         // make totals zero
         playerTotalLabels = mutableListOf(binding.player1Total, binding.player2Total)
@@ -46,18 +40,20 @@ class TwoDicePigActivity : AppCompatActivity() {
         // update current player label
         UpdateCurrentPlayerLabel()
 
-        // make die invisible
-        ToggleVisibilityOfDie(true)
-
         // array of die
         dieImages = mutableListOf(binding.dice1, binding.dice2)
 
+        // make victory message and play again button disappear
+        PlayAgainGone(true)
 
         // set up roll dice button
         RollDiceBtnInit()
 
         // set up hold button
         HoldBtnInit()
+
+        // set up play again button
+        PlayAgainButtonInit()
     }
 
     // update die images
@@ -88,11 +84,6 @@ class TwoDicePigActivity : AppCompatActivity() {
             // update die images
             UpdateDieImages()
 
-            // if dice are invisible, make them visible
-            if (!diceVisible) {
-                ToggleVisibilityOfDie(false)
-            }
-
             // enable hold button if it's not
             if (!binding.holdBtn.isEnabled) {
                 binding.holdBtn.isEnabled = true
@@ -102,6 +93,9 @@ class TwoDicePigActivity : AppCompatActivity() {
             if (die[0] == 1 && die[1] == 1) {
                 // current player loses all of their points
                 playerTotals[currentPlayer] = 0
+
+                // update player total label
+                playerTotalLabels[currentPlayer].text = playerTotals[currentPlayer].toString()
 
                 // make turn total zero
                 turnTotal = 0
@@ -114,9 +108,6 @@ class TwoDicePigActivity : AppCompatActivity() {
 
                 // update label
                 UpdateCurrentPlayerLabel()
-
-                // make dice invisible
-                ToggleVisibilityOfDie(true)
             }
 
             // rolled one one
@@ -132,9 +123,6 @@ class TwoDicePigActivity : AppCompatActivity() {
 
                 // update label
                 UpdateCurrentPlayerLabel()
-
-                // make dice invisible
-                ToggleVisibilityOfDie(true)
             }
 
             // otherwise
@@ -163,9 +151,6 @@ class TwoDicePigActivity : AppCompatActivity() {
             // update player's total in GUI
             playerTotalLabels[currentPlayer].text = playerTotals[currentPlayer].toString()
 
-            // make dice invisible
-            ToggleVisibilityOfDie(true)
-
             // make turn total zero
             turnTotal = 0
 
@@ -179,11 +164,10 @@ class TwoDicePigActivity : AppCompatActivity() {
                 binding.rollDiceBtn.isEnabled = false
 
                 // make victory message and play again button visible
-                ToggleVisibilityOfEnd(false)
+                PlayAgainGone(false)
 
                 // make dice images gone
-                dieImages[0].visibility = View.GONE
-                dieImages[1].visibility = View.GONE
+                DiceGone(true)
 
                 //set victory message
                 if (currentPlayer == 0) {
@@ -203,6 +187,38 @@ class TwoDicePigActivity : AppCompatActivity() {
         }
     }
 
+    private fun PlayAgainButtonInit() {
+        binding.playAgainBtn.setOnClickListener {
+            // reset totals
+            playerTotals[0] = 0
+            playerTotals[1] = 0
+            playerTotalLabels[0].text = "0"
+            playerTotalLabels[1].text = "0"
+
+            // reset turn total
+            turnTotal = 0
+            binding.turnTotal.text = "0"
+
+            // make dice visible
+            DiceGone(false)
+
+            // randomly decides who starts
+            currentPlayer = Random.nextInt(0, 2)
+
+            // get rid of victory message and play again button
+            PlayAgainGone(true)
+
+            // enable buttons
+            binding.rollDiceBtn.isEnabled = true
+            binding.holdBtn.isEnabled = true
+
+            // make die 1 and 1 at start of game
+            die[0] = 1
+            die[1] = 1
+            UpdateDieImages()
+        }
+    }
+
     // update current player label
     private fun UpdateCurrentPlayerLabel() {
         if (currentPlayer == 0) {
@@ -212,42 +228,75 @@ class TwoDicePigActivity : AppCompatActivity() {
         }
     }
 
-    // toggle visibility of die
-    // true = invisible    false = visible
-    private fun ToggleVisibilityOfDie(toggle : Boolean) {
-        // make invisible
+    // true = gone    false = visible
+    private fun PlayAgainGone(toggle : Boolean) {
         if (toggle) {
-            binding.dice1.visibility = View.INVISIBLE
-            binding.dice2.visibility = View.INVISIBLE
-            diceVisible = false
-        }
-
-        // make visible
-        else {
-            binding.dice1.visibility = View.VISIBLE
-            binding.dice2.visibility = View.VISIBLE
-            diceVisible = true
-        }
-    }
-
-    // toggle visibility of victory message and play again button
-    // true = invisible    false = visible
-    private fun ToggleVisibilityOfEnd(toggle : Boolean) {
-        if (toggle) {
-            binding.playAgainBtn.visibility = View.INVISIBLE
-            binding.victoryLabel.visibility = View.INVISIBLE
-            endVisible = false
+            binding.playAgainBtn.visibility = View.GONE
+            binding.victoryLabel.visibility = View.GONE
         }
 
         else {
             binding.playAgainBtn.visibility = View.VISIBLE
             binding.victoryLabel.visibility = View.VISIBLE
-            endVisible = true
+        }
+    }
+
+    // true = gone    false = visible
+    private fun DiceGone (toggle : Boolean) {
+        if (toggle) {
+            dieImages[0].visibility = View.GONE
+            dieImages[1].visibility = View.GONE
+        }
+
+        else {
+            dieImages[0].visibility = View.VISIBLE
+            dieImages[1].visibility = View.VISIBLE
         }
     }
 
     // determine if there is a winner
     private fun isWinner() : Boolean {
         return playerTotals[currentPlayer] >= winningScore
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        // save totals
+        outState.putInt("P1Total", playerTotals[0])
+        outState.putInt("P2Total", playerTotals[1])
+
+        // save turn total
+        outState.putInt("turnTotal", turnTotal)
+
+        // save die values
+        outState.putInt("die1", die[0])
+        outState.putInt("die2", die[1])
+
+        // save current player
+        outState.putInt("currPlayer", currentPlayer)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+
+        // restore player totals
+        playerTotals[0] = savedInstanceState.getInt("P1Total")
+        playerTotals[1] = savedInstanceState.getInt("P2Total")
+        playerTotalLabels[0].text = playerTotals[0].toString()
+        playerTotalLabels[1].text = playerTotals[1].toString()
+
+        // restore turn total
+        turnTotal = savedInstanceState.getInt("turnTotal")
+        binding.turnTotal.text = turnTotal.toString()
+
+        // restore die
+        die[0] = savedInstanceState.getInt("die1")
+        die[1] = savedInstanceState.getInt("die2")
+        UpdateDieImages()
+
+        // restore current player
+        currentPlayer = savedInstanceState.getInt("currPlayer")
+        UpdateCurrentPlayerLabel()
     }
 }
