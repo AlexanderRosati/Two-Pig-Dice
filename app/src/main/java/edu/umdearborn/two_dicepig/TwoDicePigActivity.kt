@@ -204,6 +204,7 @@ class TwoDicePigActivity : AppCompatActivity() {
 
             // randomly decides who starts
             currentPlayer = Random.nextInt(0, 2)
+            UpdateCurrentPlayerLabel()
 
             // get rid of victory message and play again button
             PlayAgainGone(true)
@@ -275,6 +276,21 @@ class TwoDicePigActivity : AppCompatActivity() {
 
         // save current player
         outState.putInt("currPlayer", currentPlayer)
+
+        // save whether roll button is enabled or disabled
+        outState.putBoolean("rollEnabled", binding.rollDiceBtn.isEnabled)
+
+        // save whether hold button is enabled or disabled
+        outState.putBoolean("holdEnabled", binding.holdBtn.isEnabled)
+
+        // save visibility of dices images, victory message, play again button
+        outState.putInt("visibilityDice1", dieImages[0].visibility)
+        outState.putInt("visibilityDice2", dieImages[1].visibility)
+        outState.putInt("victoryMsgVisibility", binding.victoryLabel.visibility)
+        outState.putInt("playAgainBtnVisibility", binding.playAgainBtn.visibility)
+
+        // save victory message
+        outState.putCharSequence("victoryMsg", binding.victoryLabel.text)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -298,5 +314,20 @@ class TwoDicePigActivity : AppCompatActivity() {
         // restore current player
         currentPlayer = savedInstanceState.getInt("currPlayer")
         UpdateCurrentPlayerLabel()
+
+        // restore whether roll button is enabled or not
+        binding.rollDiceBtn.isEnabled = savedInstanceState.getBoolean("rollEnabled")
+
+        // restore whether hold button is enabled or not
+        binding.holdBtn.isEnabled = savedInstanceState.getBoolean("holdEnabled")
+
+        // restore visibility of dices images, victory message, play again button
+        dieImages[0].visibility = savedInstanceState.getInt("visibilityDice1")
+        dieImages[1].visibility = savedInstanceState.getInt("visibilityDice2")
+        binding.victoryLabel.visibility = savedInstanceState.getInt("victoryMsgVisibility")
+        binding.playAgainBtn.visibility = savedInstanceState.getInt("playAgainBtnVisibility")
+
+        // restore victory message
+        binding.victoryLabel.text = savedInstanceState.getCharSequence("victoryMsg")
     }
 }
